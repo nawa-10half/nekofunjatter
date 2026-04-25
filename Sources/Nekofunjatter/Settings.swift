@@ -3,11 +3,13 @@ import Foundation
 enum PlayerKind: String, CaseIterable {
     case wav
     case eightBit
+    case dubstep
 
     var displayName: String {
         switch self {
         case .wav:      return "ピアノ"
         case .eightBit: return "8bit 風"
+        case .dubstep:  return "ダブステップ"
         }
     }
 }

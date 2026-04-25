@@ -12,6 +12,3 @@ Package.resolved
 Scripts/python/.venv/
 __pycache__/
 *.pyc
-
-# 一時ファイル (用途確認中)
-/neko_Dubstep.mp3
