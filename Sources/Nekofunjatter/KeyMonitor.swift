@@ -9,6 +9,12 @@ final class KeyMonitor {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
 
+    /// true の間、keyDown と flagsChanged を吸収する (アプリには届かない)。
+    /// keyUp は常に通すので「全キー解放」検知は維持される。
+    /// 1 bit の読み書きは atomic なので、CGEventTap コールバック側からの参照と
+    /// メインスレッドからの代入のレースは無視できる。
+    var isBlocking: Bool = false
+
     init(onKeyDown: @escaping KeyHandler, onKeyUp: @escaping KeyHandler) {
         self.onKeyDown = onKeyDown
         self.onKeyUp = onKeyUp
@@ -58,19 +64,27 @@ final class KeyMonitor {
     }
 
     private func installEventTap() {
-        let mask: CGEventMask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
+        // .flagsChanged も含める: ブロック中に修飾キーが「押しっぱなし」状態で
+        // フォーカスアプリに残るのを防ぐため
+        let mask: CGEventMask = (1 << CGEventType.keyDown.rawValue)
+                              | (1 << CGEventType.keyUp.rawValue)
+                              | (1 << CGEventType.flagsChanged.rawValue)
 
         let userInfo = Unmanaged.passUnretained(self).toOpaque()
 
-        let callback: CGEventTapCallBack = { _, type, event, refcon in
+        let callback: CGEventTapCallBack = { _, type, event, refcon -> Unmanaged<CGEvent>? in
             guard let refcon else { return Unmanaged.passUnretained(event) }
             let monitor = Unmanaged<KeyMonitor>.fromOpaque(refcon).takeUnretainedValue()
             let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
             switch type {
             case .keyDown:
                 DispatchQueue.main.async { monitor.onKeyDown(keyCode) }
+                if monitor.isBlocking { return nil }   // フォーカスアプリに渡さない
             case .keyUp:
                 DispatchQueue.main.async { monitor.onKeyUp(keyCode) }
+                // keyUp は常に通す (release 検知 + orphan keyUp は無害)
+            case .flagsChanged:
+                if monitor.isBlocking { return nil }
             case .tapDisabledByTimeout, .tapDisabledByUserInput:
                 if let tap = monitor.eventTap {
                     CGEvent.tapEnable(tap: tap, enable: true)
@@ -81,10 +95,11 @@ final class KeyMonitor {
             return Unmanaged.passUnretained(event)
         }
 
+        // .defaultTap: コールバックの戻り値で event の通過/破棄を制御できる
         guard let tap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
-            options: .listenOnly,
+            options: .defaultTap,
             eventsOfInterest: mask,
             callback: callback,
             userInfo: userInfo

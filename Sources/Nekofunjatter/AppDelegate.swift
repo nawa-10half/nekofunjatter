@@ -1,10 +1,14 @@
 import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    /// ブロック開始から強制解除するまでの最大時間 (デッドロック防止)
+    private static let maxBlockingDuration: TimeInterval = 60
+
     private var menuBar: MenuBarController?
     private var keyMonitor: KeyMonitor?
     private var detector: CatDetector?
     private var currentPlayer: Player?
+    private var blockingTimeoutTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let settings = Settings.shared
@@ -15,10 +19,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             thresholdKeys: 2,
             holdDuration: settings.holdSeconds,
             onTrigger: { [weak self] in
-                self?.currentPlayer?.play()
+                self?.startCatMode()
             },
             onRelease: { [weak self] in
-                self?.currentPlayer?.stop()
+                self?.endCatMode()
             }
         )
         self.detector = detector
@@ -39,6 +43,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             onPreview: { [weak self] in
                 self?.currentPlayer?.play()
             },
+            onForceStop: { [weak self] in
+                self?.endCatMode()
+            },
             onOpenAccessibilitySettings: {
                 KeyMonitor.openAccessibilitySettings()
             },
@@ -48,6 +55,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
 
         monitor.start()
+    }
+
+    private func startCatMode() {
+        currentPlayer?.play()
+        keyMonitor?.isBlocking = true
+        scheduleBlockingTimeout()
+    }
+
+    private func endCatMode() {
+        currentPlayer?.stop()
+        keyMonitor?.isBlocking = false
+        blockingTimeoutTimer?.invalidate()
+        blockingTimeoutTimer = nil
+    }
+
+    private func scheduleBlockingTimeout() {
+        blockingTimeoutTimer?.invalidate()
+        let timer = Timer(timeInterval: Self.maxBlockingDuration, repeats: false) { [weak self] _ in
+            self?.endCatMode()
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        blockingTimeoutTimer = timer
     }
 
     private func makePlayer(for kind: PlayerKind) -> Player {

@@ -4,18 +4,21 @@ final class MenuBarController: NSObject {
     private let statusItem: NSStatusItem
     private let onSelectPlayer: (PlayerKind) -> Void
     private let onPreview: () -> Void
+    private let onForceStop: () -> Void
     private let onOpenAccessibilitySettings: () -> Void
     private let onQuit: () -> Void
 
     init(
         onSelectPlayer: @escaping (PlayerKind) -> Void,
         onPreview: @escaping () -> Void,
+        onForceStop: @escaping () -> Void,
         onOpenAccessibilitySettings: @escaping () -> Void,
         onQuit: @escaping () -> Void
     ) {
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         self.onSelectPlayer = onSelectPlayer
         self.onPreview = onPreview
+        self.onForceStop = onForceStop
         self.onOpenAccessibilitySettings = onOpenAccessibilitySettings
         self.onQuit = onQuit
         super.init()
@@ -34,6 +37,10 @@ final class MenuBarController: NSObject {
         let preview = NSMenuItem(title: "プレビュー再生", action: #selector(previewTapped), keyEquivalent: "")
         preview.target = self
         menu.addItem(preview)
+
+        let forceStop = NSMenuItem(title: "今すぐ停止 (キーブロック解除)", action: #selector(forceStopTapped), keyEquivalent: "")
+        forceStop.target = self
+        menu.addItem(forceStop)
 
         menu.addItem(.separator())
 
@@ -67,6 +74,10 @@ final class MenuBarController: NSObject {
 
     @objc private func previewTapped() {
         onPreview()
+    }
+
+    @objc private func forceStopTapped() {
+        onForceStop()
     }
 
     @objc private func selectPlayer(_ sender: NSMenuItem) {
