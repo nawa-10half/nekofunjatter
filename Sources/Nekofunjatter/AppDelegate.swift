@@ -116,7 +116,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         switch kind {
         case .wav:      return WavPlayer(resourceName: "Neko_Funjatta")
         case .eightBit: return WavPlayer(resourceName: "Neko_Funjatta_8bit")
-        case .dubstep:  return WavPlayer(resourceName: "neko_Dubstep", fileExtension: "mp3")
         }
     }
 }

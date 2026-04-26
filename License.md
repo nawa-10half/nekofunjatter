@@ -36,11 +36,6 @@ Scripts/python/.venv/bin/python Scripts/python/extract_melody.py \
     --wav-output Resources/Audio/Neko_Funjatta_8bit.wav
 ```
 
-### `Resources/Audio/neko_Dubstep.mp3` (ダブステップ風)
-
-生成 AI を用いて作成。著作権は **本リポジトリの作者 (nawa-10half) に全て帰属**。
-本アプリのソースコードのライセンスに準じて再配布可能。
-
 ---
 
 ## 第三者ソフトウェアライセンス
