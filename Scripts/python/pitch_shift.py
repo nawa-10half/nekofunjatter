@@ -7,8 +7,8 @@ import argparse
 from pathlib import Path
 
 import librosa
-import numpy as np
-from scipy.io import wavfile
+
+from _audio_io import write_int16_wav
 
 
 def main():
@@ -22,25 +22,10 @@ def main():
     print(f"loading: {args.input}")
     y, sr = librosa.load(str(args.input), sr=None, mono=False)
 
-    if y.ndim == 1:
-        shifted = librosa.effects.pitch_shift(y, sr=sr, n_steps=args.semitones)
-    else:
-        # ステレオ: チャンネルごとに処理
-        shifted = np.stack([
-            librosa.effects.pitch_shift(ch, sr=sr, n_steps=args.semitones)
-            for ch in y
-        ])
+    # librosa.effects.pitch_shift は多チャンネル (axis=-1) を直接受け付ける
+    shifted = librosa.effects.pitch_shift(y, sr=sr, n_steps=args.semitones)
 
-    # int16 PCM として書き出し
-    shifted_clipped = np.clip(shifted, -1.0, 1.0)
-    pcm = (shifted_clipped * 32767.0).astype(np.int16)
-
-    if pcm.ndim > 1:
-        # scipy.io.wavfile は (n_samples, n_channels) 形式を期待
-        pcm = pcm.T
-
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    wavfile.write(str(args.output), sr, pcm)
+    write_int16_wav(args.output, shifted, sr)
     print(f"wrote: {args.output} ({args.semitones:+.1f} semitones)")
 
 

@@ -42,8 +42,8 @@ final class Settings {
 
     var holdSeconds: TimeInterval {
         get {
-            let v = defaults.double(forKey: Keys.holdSeconds)
-            return v > 0 ? v : 0.5
+            if defaults.object(forKey: Keys.holdSeconds) == nil { return 0.5 }
+            return defaults.double(forKey: Keys.holdSeconds)
         }
         set { defaults.set(newValue, forKey: Keys.holdSeconds) }
     }

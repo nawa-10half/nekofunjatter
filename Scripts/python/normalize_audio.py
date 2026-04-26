@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import argparse
 import math
-import shutil
+import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -13,7 +13,8 @@ from pathlib import Path
 import librosa
 import numpy as np
 import pyloudnorm as pyln
-import soundfile as sf
+
+from _audio_io import write_int16_wav
 
 
 def normalize(input_path: Path, output_path: Path, target_lufs: float):
@@ -41,30 +42,29 @@ def normalize(input_path: Path, output_path: Path, target_lufs: float):
     else:
         print(f"  {input_path.name}: {current:.2f} → {target_lufs:.2f} LUFS")
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
     suffix = output_path.suffix.lower()
     if suffix == ".wav":
-        # int16 PCM で書き出し
-        pcm = (np.clip(y_normalized, -1.0, 1.0) * 32767.0).astype(np.int16)
-        if is_stereo:
-            pcm = pcm.T
-        sf.write(str(output_path), pcm if is_stereo else pcm.reshape(-1, 1) if False else pcm, sr, subtype="PCM_16")
+        write_int16_wav(output_path, y_normalized, sr)
     elif suffix == ".mp3":
-        # 一旦 WAV を tmp に書いて ffmpeg で MP3 化
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-            tmp_wav = Path(tmp.name)
+        # 一旦 WAV を tmp に書いて ffmpeg で MP3 化、最終的に atomic に差し替え
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_wav_f:
+            tmp_wav = Path(tmp_wav_f.name)
+        with tempfile.NamedTemporaryFile(
+            dir=output_path.parent, prefix=f".{output_path.name}.", suffix=".tmp", delete=False
+        ) as tmp_mp3_f:
+            tmp_mp3 = Path(tmp_mp3_f.name)
         try:
-            pcm = (np.clip(y_normalized, -1.0, 1.0) * 32767.0).astype(np.int16)
-            if is_stereo:
-                pcm = pcm.T
-            sf.write(str(tmp_wav), pcm, sr, subtype="PCM_16")
+            write_int16_wav(tmp_wav, y_normalized, sr)
             subprocess.run([
                 "ffmpeg", "-y", "-loglevel", "error",
                 "-i", str(tmp_wav),
                 "-codec:a", "libmp3lame", "-q:a", "2",  # VBR ~190 kbps
-                str(output_path),
+                str(tmp_mp3),
             ], check=True)
+            os.replace(tmp_mp3, output_path)
+        except Exception:
+            tmp_mp3.unlink(missing_ok=True)
+            raise
         finally:
             tmp_wav.unlink(missing_ok=True)
     else:

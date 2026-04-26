@@ -8,7 +8,7 @@ import argparse
 import json
 from pathlib import Path
 
-from extract_melody import render_chiptune
+from _chiptune import render_chiptune
 
 
 def main():
