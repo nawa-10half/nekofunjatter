@@ -7,6 +7,10 @@
   <img src="Resources/Icons/AppIcon-source.png" width="200" alt="App Icon"/>
 </p>
 
+<p align="center">
+  <img src="Resources/Icons/screenshot-menu.png" width="320" alt="メニューバーから開いたメニューのスクリーンショット"/>
+</p>
+
 ## 機能
 
 - 🐾 **猫検知**: キーボード上で複数キーが一定時間以上押されているのを検知

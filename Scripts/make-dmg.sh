@@ -39,4 +39,28 @@ else
     rm -rf "${STAGING}"
 fi
 
+echo "==> DMG を署名 + 公証 + staple"
+
+if [[ -f .env ]]; then
+    # shellcheck disable=SC1091
+    source .env
+fi
+
+if [[ -n "${DEVELOPER_ID:-}" ]]; then
+    codesign --force --sign "${DEVELOPER_ID}" --timestamp "${DMG_PATH}"
+    if [[ -n "${APPLE_ID:-}" && -n "${APPLE_TEAM_ID:-}" && -n "${APPLE_APP_PASSWORD:-}" ]]; then
+        xcrun notarytool submit "${DMG_PATH}" \
+            --apple-id "${APPLE_ID}" \
+            --team-id "${APPLE_TEAM_ID}" \
+            --password "${APPLE_APP_PASSWORD}" \
+            --wait
+        xcrun stapler staple "${DMG_PATH}"
+        xcrun stapler validate "${DMG_PATH}"
+    else
+        echo "==> ⚠️  公証情報 (.env の APPLE_ID / APPLE_TEAM_ID / APPLE_APP_PASSWORD) が無いのでスキップ"
+    fi
+else
+    echo "==> ⚠️  DEVELOPER_ID 未設定のため未署名 DMG"
+fi
+
 echo "==> 完了: ${DMG_PATH}"
