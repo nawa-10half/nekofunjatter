@@ -3,11 +3,13 @@ import Foundation
 enum PlayerKind: String, CaseIterable {
     case wav
     case eightBit
+    case custom
 
     var displayName: String {
         switch self {
         case .wav:      return "ピアノ"
         case .eightBit: return "8bit 風"
+        case .custom:   return "カスタム音源"
         }
     }
 }
@@ -18,6 +20,7 @@ final class Settings {
     private let defaults = UserDefaults.standard
     private enum Keys {
         static let playerKind = "playerKind"
+        static let customAudioPath = "customAudioPath"
         static let holdSeconds = "holdSeconds"
         static let thresholdKeys = "thresholdKeys"
         static let blockingEnabled = "blockingEnabled"
@@ -36,6 +39,17 @@ final class Settings {
             return kind
         }
         set { defaults.set(newValue.rawValue, forKey: Keys.playerKind) }
+    }
+
+    /// ユーザーが選択したカスタム音源ファイルの絶対パス。Sandbox 無効なため URL 直保存で OK。
+    var customAudioURL: URL? {
+        get {
+            guard let path = defaults.string(forKey: Keys.customAudioPath), !path.isEmpty else {
+                return nil
+            }
+            return URL(fileURLWithPath: path)
+        }
+        set { defaults.set(newValue?.path, forKey: Keys.customAudioPath) }
     }
 
     var holdSeconds: TimeInterval {

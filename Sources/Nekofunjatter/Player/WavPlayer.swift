@@ -1,7 +1,8 @@
 import Foundation
 import AVFoundation
 
-/// バンドル同梱の音声ファイル (WAV / MP3 など) をループ再生するプレイヤー。
+/// 音声ファイル (WAV / MP3 など) をループ再生するプレイヤー。
+/// バンドル同梱リソースと、ユーザーが任意に指定した URL の両方に対応。
 final class WavPlayer: Player {
     private var audioPlayer: AVAudioPlayer?
 
@@ -10,6 +11,14 @@ final class WavPlayer: Player {
             NSLog("WavPlayer: \(resourceName).\(fileExtension) が見つかりません")
             return
         }
+        load(from: url)
+    }
+
+    init(url: URL) {
+        load(from: url)
+    }
+
+    private func load(from url: URL) {
         do {
             let player = try AVAudioPlayer(contentsOf: url)
             player.numberOfLoops = -1   // 無限ループ
@@ -17,7 +26,7 @@ final class WavPlayer: Player {
             player.volume = 1.0
             self.audioPlayer = player
         } catch {
-            NSLog("WavPlayer: AVAudioPlayer init failed: \(error)")
+            NSLog("WavPlayer: AVAudioPlayer init failed for \(url.path): \(error)")
         }
     }
 

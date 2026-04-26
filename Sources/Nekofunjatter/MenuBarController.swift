@@ -20,6 +20,8 @@ final class MenuBarController: NSObject {
 
     private let statusItem: NSStatusItem
     private let onSelectPlayer: (PlayerKind) -> Void
+    private let onPickCustomAudio: () -> Void
+    private let onClearCustomAudio: () -> Void
     private let onStartPreview: () -> Void
     private let onStopPreview: () -> Void
     private let onForceStop: () -> Void
@@ -33,6 +35,8 @@ final class MenuBarController: NSObject {
 
     init(
         onSelectPlayer: @escaping (PlayerKind) -> Void,
+        onPickCustomAudio: @escaping () -> Void,
+        onClearCustomAudio: @escaping () -> Void,
         onStartPreview: @escaping () -> Void,
         onStopPreview: @escaping () -> Void,
         onForceStop: @escaping () -> Void,
@@ -44,6 +48,8 @@ final class MenuBarController: NSObject {
     ) {
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         self.onSelectPlayer = onSelectPlayer
+        self.onPickCustomAudio = onPickCustomAudio
+        self.onClearCustomAudio = onClearCustomAudio
         self.onStartPreview = onStartPreview
         self.onStopPreview = onStopPreview
         self.onForceStop = onForceStop
@@ -74,11 +80,22 @@ final class MenuBarController: NSObject {
 
         // ── 音源 ──
         menu.addItem(disabledHeader("音源"))
-        for kind in PlayerKind.allCases {
+        for kind in [PlayerKind.wav, .eightBit] {
             let item = makeItem(title: kind.displayName, action: #selector(selectPlayer(_:)))
             item.representedObject = kind.rawValue
             item.state = (kind == s.playerKind) ? .on : .off
             menu.addItem(item)
+        }
+        if let url = s.customAudioURL {
+            let item = makeItem(title: url.lastPathComponent, action: #selector(selectPlayer(_:)))
+            item.representedObject = PlayerKind.custom.rawValue
+            item.state = (s.playerKind == .custom) ? .on : .off
+            item.toolTip = url.path
+            menu.addItem(item)
+        }
+        menu.addItem(makeItem(title: "カスタム音源を選択…", action: #selector(pickCustomAudioTapped)))
+        if s.customAudioURL != nil {
+            menu.addItem(makeItem(title: "カスタム音源の選択を解除", action: #selector(clearCustomAudioTapped)))
         }
         menu.addItem(.separator())
 
@@ -177,6 +194,24 @@ final class MenuBarController: NSObject {
             isPreviewing = false
         }
         onSelectPlayer(kind)
+        rebuildMenu()
+    }
+
+    @objc private func pickCustomAudioTapped() {
+        if isPreviewing {
+            onStopPreview()
+            isPreviewing = false
+        }
+        onPickCustomAudio()
+        rebuildMenu()
+    }
+
+    @objc private func clearCustomAudioTapped() {
+        if isPreviewing {
+            onStopPreview()
+            isPreviewing = false
+        }
+        onClearCustomAudio()
         rebuildMenu()
     }
 

@@ -1,5 +1,6 @@
 import AppKit
 import ServiceManagement
+import UniformTypeIdentifiers
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     /// ブロック開始から強制解除するまでの最大時間 (デッドロック防止)
@@ -13,6 +14,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let settings = Settings.shared
+
+        // 起動時にカスタム音源ファイルが消えていれば 8bit にフォールバック
+        if settings.playerKind == .custom,
+           settings.customAudioURL.map({ !FileManager.default.isReadableFile(atPath: $0.path) }) ?? true {
+            settings.playerKind = .eightBit
+        }
 
         currentPlayer = makePlayer(for: settings.playerKind)
 
@@ -31,6 +38,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 Settings.shared.playerKind = kind
                 self.currentPlayer?.stop()
                 self.currentPlayer = self.makePlayer(for: kind)
+            },
+            onPickCustomAudio: { [weak self] in
+                self?.pickCustomAudio()
+            },
+            onClearCustomAudio: { [weak self] in
+                self?.clearCustomAudio()
             },
             onStartPreview: { [weak self] in
                 self?.currentPlayer?.play()
@@ -116,6 +129,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         switch kind {
         case .wav:      return WavPlayer(resourceName: "Neko_Funjatta")
         case .eightBit: return WavPlayer(resourceName: "Neko_Funjatta_8bit")
+        case .custom:
+            if let url = Settings.shared.customAudioURL,
+               FileManager.default.isReadableFile(atPath: url.path) {
+                return WavPlayer(url: url)
+            }
+            return WavPlayer(resourceName: "Neko_Funjatta_8bit")
+        }
+    }
+
+    private func pickCustomAudio() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.audio]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.message = "猫モード時に再生する音声ファイルを選択"
+        panel.prompt = "選択"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        Settings.shared.customAudioURL = url
+        Settings.shared.playerKind = .custom
+        currentPlayer?.stop()
+        currentPlayer = makePlayer(for: .custom)
+    }
+
+    private func clearCustomAudio() {
+        Settings.shared.customAudioURL = nil
+        if Settings.shared.playerKind == .custom {
+            Settings.shared.playerKind = .eightBit
+            currentPlayer?.stop()
+            currentPlayer = makePlayer(for: .eightBit)
         }
     }
 }
