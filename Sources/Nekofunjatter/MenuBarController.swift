@@ -1,6 +1,23 @@
 import AppKit
 
 final class MenuBarController: NSObject {
+    /// メニューバー用の肉球 (2 つ) アイコンを返す。
+    /// バンドル同梱の PDF を template image として読み込み、
+    /// ダーク/ライトモードで自動的に色が反転する。
+    private static func menuBarIcon() -> NSImage? {
+        let url = Bundle.main.url(forResource: "pawprints", withExtension: "pdf", subdirectory: "Icons")
+            ?? Bundle.main.url(forResource: "pawprints", withExtension: "pdf")
+        if let url, let image = NSImage(contentsOf: url) {
+            image.isTemplate = true
+            image.size = NSSize(width: 18, height: 18)
+            return image
+        }
+        // フォールバック: SF Symbols の単一肉球
+        let fallback = NSImage(systemSymbolName: "pawprint.fill", accessibilityDescription: "Nekofunjatter")
+        fallback?.isTemplate = true
+        return fallback
+    }
+
     private let statusItem: NSStatusItem
     private let onSelectPlayer: (PlayerKind) -> Void
     private let onStartPreview: () -> Void
@@ -32,14 +49,7 @@ final class MenuBarController: NSObject {
         super.init()
 
         if let button = statusItem.button {
-            // SF Symbols の肉球アイコンを template image として設定
-            // → メニューバーの色 (ライト/ダーク) に応じて自動的に黒/白で描画される
-            if let image = NSImage(systemSymbolName: "pawprint.fill", accessibilityDescription: "Nekofunjatter") {
-                image.isTemplate = true
-                button.image = image
-            } else {
-                button.title = "🐾"   // SF Symbols 不在時のフォールバック
-            }
+            button.image = Self.menuBarIcon()
             button.toolTip = "Nekofunjatter"
         }
 

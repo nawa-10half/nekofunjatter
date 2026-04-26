@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <g fill="currentColor">
+    <!-- 上左の肉球 (やや回転) -->
+    <g transform="translate(2 4) rotate(-18 25 25)">
+      <!-- メインパッド (heart-shape っぽいオーバル) -->
+      <ellipse cx="25" cy="38" rx="13" ry="10"/>
+      <!-- 4 つの指 -->
+      <ellipse cx="9"  cy="20" rx="5.5" ry="6.5"/>
+      <ellipse cx="19" cy="9"  rx="5.5" ry="6.5"/>
+      <ellipse cx="31" cy="9"  rx="5.5" ry="6.5"/>
+      <ellipse cx="41" cy="20" rx="5.5" ry="6.5"/>
+    </g>
+    <!-- 下右の肉球 (反対方向に回転) -->
+    <g transform="translate(48 48) rotate(18 25 25)">
+      <ellipse cx="25" cy="38" rx="13" ry="10"/>
+      <ellipse cx="9"  cy="20" rx="5.5" ry="6.5"/>
+      <ellipse cx="19" cy="9"  rx="5.5" ry="6.5"/>
+      <ellipse cx="31" cy="9"  rx="5.5" ry="6.5"/>
+      <ellipse cx="41" cy="20" rx="5.5" ry="6.5"/>
+    </g>
+  </g>
+</svg>

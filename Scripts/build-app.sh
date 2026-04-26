@@ -36,6 +36,9 @@ cp "Resources/Info.plist" "${APP_BUNDLE}/Contents/Info.plist"
 if [[ -d "Resources/Audio" ]]; then
     cp -R "Resources/Audio" "${APP_BUNDLE}/Contents/Resources/Audio"
 fi
+if [[ -d "Resources/Icons" ]]; then
+    cp -R "Resources/Icons" "${APP_BUNDLE}/Contents/Resources/Icons"
+fi
 
 # PkgInfo (旧来の慣習)
 printf 'APPL????' > "${APP_BUNDLE}/Contents/PkgInfo"
