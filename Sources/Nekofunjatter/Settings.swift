@@ -26,7 +26,7 @@ final class Settings {
     }
 
     /// 選択肢 (UI からも参照)
-    static let thresholdKeyChoices: [Int] = [2, 3, 4, 5]
+    static let thresholdKeyChoices: [Int] = [1, 2, 3, 4, 5]
     static let holdSecondChoices: [TimeInterval] = [0.3, 0.5, 1.0, 2.0]
 
     var playerKind: PlayerKind {
@@ -50,8 +50,9 @@ final class Settings {
 
     var thresholdKeys: Int {
         get {
-            let v = defaults.integer(forKey: Keys.thresholdKeys)
-            return v >= 2 ? v : 2
+            // キー未設定時のデフォルトは 2。1 が選択された場合も保持する。
+            if defaults.object(forKey: Keys.thresholdKeys) == nil { return 2 }
+            return defaults.integer(forKey: Keys.thresholdKeys)
         }
         set { defaults.set(newValue, forKey: Keys.thresholdKeys) }
     }
