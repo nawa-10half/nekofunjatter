@@ -1,4 +1,5 @@
 import AppKit
+import ServiceManagement
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     /// ブロック開始から強制解除するまでの最大時間 (デッドロック防止)
@@ -43,6 +44,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             onDetectionSettingsChanged: { [weak self] in
                 self?.rebuildDetector()
             },
+            onToggleAutoLaunch: {
+                AppDelegate.toggleAutoLaunch()
+            },
+            isAutoLaunchEnabled: {
+                AppDelegate.isAutoLaunchEnabled()
+            },
             onOpenAccessibilitySettings: {
                 KeyMonitor.openAccessibilitySettings()
             },
@@ -77,6 +84,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         keyMonitor?.isBlocking = false
         blockingTimeoutTimer?.invalidate()
         blockingTimeoutTimer = nil
+    }
+
+    static func isAutoLaunchEnabled() -> Bool {
+        return SMAppService.mainApp.status == .enabled
+    }
+
+    static func toggleAutoLaunch() {
+        let svc = SMAppService.mainApp
+        do {
+            if svc.status == .enabled {
+                try svc.unregister()
+            } else {
+                try svc.register()
+            }
+        } catch {
+            NSLog("AutoLaunch toggle failed: \(error)")
+        }
     }
 
     private func scheduleBlockingTimeout() {

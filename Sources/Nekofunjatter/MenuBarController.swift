@@ -24,6 +24,8 @@ final class MenuBarController: NSObject {
     private let onStopPreview: () -> Void
     private let onForceStop: () -> Void
     private let onDetectionSettingsChanged: () -> Void
+    private let onToggleAutoLaunch: () -> Void
+    private let isAutoLaunchEnabled: () -> Bool
     private let onOpenAccessibilitySettings: () -> Void
     private let onQuit: () -> Void
 
@@ -35,6 +37,8 @@ final class MenuBarController: NSObject {
         onStopPreview: @escaping () -> Void,
         onForceStop: @escaping () -> Void,
         onDetectionSettingsChanged: @escaping () -> Void,
+        onToggleAutoLaunch: @escaping () -> Void,
+        isAutoLaunchEnabled: @escaping () -> Bool,
         onOpenAccessibilitySettings: @escaping () -> Void,
         onQuit: @escaping () -> Void
     ) {
@@ -44,6 +48,8 @@ final class MenuBarController: NSObject {
         self.onStopPreview = onStopPreview
         self.onForceStop = onForceStop
         self.onDetectionSettingsChanged = onDetectionSettingsChanged
+        self.onToggleAutoLaunch = onToggleAutoLaunch
+        self.isAutoLaunchEnabled = isAutoLaunchEnabled
         self.onOpenAccessibilitySettings = onOpenAccessibilitySettings
         self.onQuit = onQuit
         super.init()
@@ -95,6 +101,10 @@ final class MenuBarController: NSObject {
         menu.addItem(blockItem)
 
         menu.addItem(.separator())
+
+        let autoLaunch = makeItem(title: "ログイン時に起動", action: #selector(toggleAutoLaunch))
+        autoLaunch.state = isAutoLaunchEnabled() ? .on : .off
+        menu.addItem(autoLaunch)
 
         menu.addItem(makeItem(title: "アクセシビリティ設定を開く…", action: #selector(openAccessibility)))
         menu.addItem(.separator())
@@ -185,6 +195,11 @@ final class MenuBarController: NSObject {
 
     @objc private func toggleBlocking() {
         Settings.shared.blockingEnabled.toggle()
+        rebuildMenu()
+    }
+
+    @objc private func toggleAutoLaunch() {
+        onToggleAutoLaunch()
         rebuildMenu()
     }
 
