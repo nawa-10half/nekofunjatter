@@ -32,6 +32,12 @@ mkdir -p "${APP_BUNDLE}/Contents/Resources"
 cp "${EXECUTABLE}" "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
 cp "Resources/Info.plist" "${APP_BUNDLE}/Contents/Info.plist"
 
+# .icns は Contents/Resources/AppIcon.icns に直接置く必要がある
+# (CFBundleIconFile = "AppIcon" でこのパスから読まれる)
+if [[ -f "Resources/Icons/AppIcon.icns" ]]; then
+    cp "Resources/Icons/AppIcon.icns" "${APP_BUNDLE}/Contents/Resources/AppIcon.icns"
+fi
+
 # Audio などのアセットをコピー
 if [[ -d "Resources/Audio" ]]; then
     cp -R "Resources/Audio" "${APP_BUNDLE}/Contents/Resources/Audio"

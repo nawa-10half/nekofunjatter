@@ -6,6 +6,8 @@
     <string>ja_JP</string>
     <key>CFBundleExecutable</key>
     <string>Nekofunjatter</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundleIdentifier</key>
     <string>jp.tenhalf.nekofunjatter</string>
     <key>CFBundleInfoDictionaryVersion</key>
