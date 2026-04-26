@@ -24,12 +24,34 @@ def hz_to_midi_round(hz: float) -> int:
     return round(69 + 12 * math.log2(hz / 440.0))
 
 
+# F# メジャースケールのピッチクラス (MIDI % 12):
+#   F#=6, G#=8, A#=10, B=11, C#=1, D#=3, E#(=F)=5
+F_SHARP_MAJOR_PCS = {6, 8, 10, 11, 1, 3, 5}
+
+
+def snap_to_scale(midi: int, scale_pcs: set[int], max_distance: int = 1) -> int:
+    """検出ピッチを最寄りのスケール内ノートにスナップする。
+    max_distance 以内のズレのみ補正、それ以上ズレたものは味として残す。
+    """
+    if midi < 0:
+        return midi
+    pc = midi % 12
+    if pc in scale_pcs:
+        return midi
+    for dist in range(1, max_distance + 1):
+        if (pc + dist) % 12 in scale_pcs:
+            return midi + dist
+        if (pc - dist) % 12 in scale_pcs:
+            return midi - dist
+    return midi
+
+
 def extract_melody(
     wav_path: Path,
     fmin: float = librosa.note_to_hz("C3"),
     fmax: float = librosa.note_to_hz("C7"),
-    frame_length: int = 2048,
-    hop_length: int = 512,
+    frame_length: int = 4096,    # 周波数解像度を上げる (旧 2048)
+    hop_length: int = 256,        # 時間解像度を上げる (旧 512)
 ):
     y, sr = librosa.load(str(wav_path), sr=None, mono=True)
     print(f"loaded: {wav_path.name}, sr={sr}, duration={len(y)/sr:.2f}s")
@@ -42,13 +64,17 @@ def extract_melody(
         sr=sr,
         frame_length=frame_length,
         hop_length=hop_length,
+        resolution=0.05,             # 0.05 半音刻み (デフォ 0.1) で精度向上
     )
 
     times = librosa.times_like(f0, sr=sr, hop_length=hop_length)
 
     # 各フレームを MIDI ノート番号に変換 (無音/未検出は -1)
-    midis = np.array([hz_to_midi_round(h) if vf else -1
-                      for h, vf in zip(f0, voiced_flag)], dtype=np.int32)
+    # F# メジャースケールに 1 半音以内をスナップ (味として大きいズレは残す)
+    midis = np.array([
+        snap_to_scale(hz_to_midi_round(h), F_SHARP_MAJOR_PCS, max_distance=1) if vf else -1
+        for h, vf in zip(f0, voiced_flag)
+    ], dtype=np.int32)
 
     # ノイズ除去: 1〜2フレームしか続かないノートを近傍で置換
     # (簡易メディアンフィルタ風)
@@ -69,7 +95,7 @@ def extract_melody(
             start_t = float(times[cur_start_idx])
             end_t = float(times[i])
             duration = end_t - start_t
-            if cur_midi >= 0 and duration >= 0.04:  # 40ms 以下のチャタリングは破棄
+            if cur_midi >= 0 and duration >= 0.06:  # 60ms 未満のチャタリングは破棄
                 events.append({
                     "midi": cur_midi,
                     "start_sec": start_t,
@@ -88,7 +114,7 @@ def extract_melody(
     start_t = float(times[cur_start_idx])
     end_t = float(times[-1])
     duration = end_t - start_t
-    if cur_midi >= 0 and duration >= 0.04:
+    if cur_midi >= 0 and duration >= 0.06:
         events.append({
             "midi": cur_midi,
             "start_sec": start_t,
