@@ -115,9 +115,37 @@ def main():
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--json-output", type=Path, required=True)
     parser.add_argument("--wav-output", type=Path, required=True)
+    parser.add_argument(
+        "--mode",
+        choices=["melody", "high", "chord"],
+        default="melody",
+        help="melody: 全域で pyin (デフォルト、左手を拾い音痴になりがち) / "
+             "high: C5–C7 で右手のみ抽出 / "
+             "chord: 高低 2 バンド分離して両方を合成 (擬似的二声)",
+    )
     args = parser.parse_args()
 
-    events, sr = extract_melody(args.input)
+    if args.mode == "high":
+        events, sr = extract_melody(
+            args.input,
+            fmin=librosa.note_to_hz("C5"),
+            fmax=librosa.note_to_hz("C7"),
+        )
+    elif args.mode == "chord":
+        high_events, sr = extract_melody(
+            args.input,
+            fmin=librosa.note_to_hz("C5"),
+            fmax=librosa.note_to_hz("C7"),
+        )
+        low_events, _ = extract_melody(
+            args.input,
+            fmin=librosa.note_to_hz("C3"),
+            fmax=librosa.note_to_hz("C5"),
+        )
+        # render_chiptune は events を加算合成するので、両バンドの events を結合すれば多声化する
+        events = high_events + low_events
+    else:
+        events, sr = extract_melody(args.input)
 
     args.json_output.parent.mkdir(parents=True, exist_ok=True)
     with args.json_output.open("w") as f:
