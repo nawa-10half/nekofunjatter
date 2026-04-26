@@ -32,7 +32,14 @@ final class MenuBarController: NSObject {
         super.init()
 
         if let button = statusItem.button {
-            button.title = "🐾"
+            // SF Symbols の肉球アイコンを template image として設定
+            // → メニューバーの色 (ライト/ダーク) に応じて自動的に黒/白で描画される
+            if let image = NSImage(systemSymbolName: "pawprint.fill", accessibilityDescription: "Nekofunjatter") {
+                image.isTemplate = true
+                button.image = image
+            } else {
+                button.title = "🐾"   // SF Symbols 不在時のフォールバック
+            }
             button.toolTip = "Nekofunjatter"
         }
 
