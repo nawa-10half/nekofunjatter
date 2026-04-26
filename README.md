@@ -31,19 +31,6 @@
 ```bash
 git clone https://github.com/nawa-10half/nekofunjatter.git
 cd nekofunjatter
-
-# ピアノ音源は再配布不可のため、別途ダウンロードが必要
-# https://soundjewel.symphie.jp/gekiban/neko_funjatta から WAV を取得し、
-# Resources/Audio/Neko_Funjatta.wav に配置
-
-# 8bit 音源を生成 (オプション)
-python3.13 -m venv Scripts/python/.venv
-Scripts/python/.venv/bin/pip install librosa scipy cairosvg
-Scripts/python/.venv/bin/python Scripts/python/extract_melody.py \
-    --input Resources/Audio/Neko_Funjatta.wav \
-    --json-output Resources/Generated/melody.json \
-    --wav-output Resources/Audio/Neko_Funjatta_8bit.wav
-
 ./Scripts/build-app.sh
 open build/Nekofunjatter.app
 ```

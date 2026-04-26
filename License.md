@@ -9,37 +9,25 @@
 作曲者不詳、19 世紀末の伝統曲。**パブリックドメイン**。
 楽曲そのものを再生・編曲・配布することに著作権上の制約はありません。
 
-ただし **個別の演奏録音には別途著作隣接権** (実演家・レコード製作者の権利) が発生するため、以下、本リポジトリで利用する音源ファイルごとにライセンスを明記します。
-
 ---
 
 ## 音源ファイル
 
-### `Neko_Funjatta.wav` (ピアノ録音)
+### `Resources/Audio/Neko_Funjatta.wav` (ピアノ録音)
 
-- **出典**: [SoundJewel — 猫ふんじゃった](https://soundjewel.symphie.jp/gekiban/neko_funjatta)
-- **ライセンス概要** ([詳細はサイト規約](https://soundjewel.symphie.jp/gekiban/neko_funjatta) を参照):
+- **出典**: [Wikimedia Commons - Der Flohwalzer.wav](https://commons.wikimedia.org/wiki/File:Der_Flohwalzer.wav)
+- **作者**: Wikipedia ユーザー *Nunh-huh* による synth piano 演奏
+- **ライセンス**: **CC0 1.0 Universal (Public Domain Dedication)**
+  - 著作権者がすべての権利を放棄しパブリックドメインに供したもの
+  - 商用・非商用、改変・再配布、いずれも自由
+  - クレジット表記の義務なし (任意で記載することは推奨)
 
-| 項目 | 可否 |
-|---|---|
-| ダウンロード・利用 | 無料 |
-| 商用利用 | ○ |
-| 使用期間・使用回数の制限 | なし |
-| 使用許諾の申請・利用報告 | 必要なし |
-| クレジット表記 | 必要なし |
-| 編集・エフェクト付加 | ○ |
-| 映画 / TV / ラジオ / CM / WEB / YouTube / ゲーム / アプリ / 演奏 等での利用 | ○ |
-| **販売・再配布** | **✕** |
+### `Resources/Audio/Neko_Funjatta_8bit.wav` (8bit 風アレンジ)
 
-> ⚠️ **本リポジトリには `Neko_Funjatta.wav` を同梱しません。**
-> ご自身で [SoundJewel](https://soundjewel.symphie.jp/gekiban/neko_funjatta) からダウンロードし、
-> `Resources/Audio/Neko_Funjatta.wav` に配置してください。
+`Neko_Funjatta.wav` を [librosa](https://librosa.org/) でピッチ抽出し、矩形波で再合成した派生作品。
+原曲が CC0 のため、**この派生作品も実質的に CC0** として扱えます。
 
-### `Neko_Funjatta_8bit.wav` (8bit 風アレンジ)
-
-`Neko_Funjatta.wav` を [librosa](https://librosa.org/) でピッチ抽出し、矩形波で再合成した派生作品 (derivative work)。SoundJewel の規約「販売・配布 ✕」が派生物にも適用されるため、本リポジトリには **同梱しません**。
-
-ローカルで生成するには：
+ローカルで再生成する場合：
 
 ```bash
 Scripts/python/.venv/bin/python Scripts/python/extract_melody.py \
