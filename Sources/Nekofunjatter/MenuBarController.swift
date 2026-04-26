@@ -6,10 +6,10 @@ final class MenuBarController: NSObject {
     private let onStartPreview: () -> Void
     private let onStopPreview: () -> Void
     private let onForceStop: () -> Void
+    private let onDetectionSettingsChanged: () -> Void
     private let onOpenAccessibilitySettings: () -> Void
     private let onQuit: () -> Void
 
-    /// プレビュー再生中かどうか (メニュー表示の切替用)
     private var isPreviewing: Bool = false
 
     init(
@@ -17,6 +17,7 @@ final class MenuBarController: NSObject {
         onStartPreview: @escaping () -> Void,
         onStopPreview: @escaping () -> Void,
         onForceStop: @escaping () -> Void,
+        onDetectionSettingsChanged: @escaping () -> Void,
         onOpenAccessibilitySettings: @escaping () -> Void,
         onQuit: @escaping () -> Void
     ) {
@@ -25,6 +26,7 @@ final class MenuBarController: NSObject {
         self.onStartPreview = onStartPreview
         self.onStopPreview = onStopPreview
         self.onForceStop = onForceStop
+        self.onDetectionSettingsChanged = onDetectionSettingsChanged
         self.onOpenAccessibilitySettings = onOpenAccessibilitySettings
         self.onQuit = onQuit
         super.init()
@@ -39,45 +41,90 @@ final class MenuBarController: NSObject {
 
     private func rebuildMenu() {
         let menu = NSMenu()
+        let s = Settings.shared
 
+        // ── 再生コントロール ──
         let previewTitle = isPreviewing ? "プレビュー停止" : "プレビュー再生"
-        let preview = NSMenuItem(title: previewTitle, action: #selector(previewTapped), keyEquivalent: "")
-        preview.target = self
-        menu.addItem(preview)
-
-        let forceStop = NSMenuItem(title: "今すぐ停止 (キーブロック解除)", action: #selector(forceStopTapped), keyEquivalent: "")
-        forceStop.target = self
-        menu.addItem(forceStop)
-
+        menu.addItem(makeItem(title: previewTitle, action: #selector(previewTapped)))
+        menu.addItem(makeItem(title: "今すぐ停止 (キーブロック解除)", action: #selector(forceStopTapped)))
         menu.addItem(.separator())
 
-        let soundHeader = NSMenuItem(title: "音源", action: nil, keyEquivalent: "")
-        soundHeader.isEnabled = false
-        menu.addItem(soundHeader)
-
-        let current = Settings.shared.playerKind
+        // ── 音源 ──
+        menu.addItem(disabledHeader("音源"))
         for kind in PlayerKind.allCases {
-            let item = NSMenuItem(title: kind.displayName, action: #selector(selectPlayer(_:)), keyEquivalent: "")
-            item.target = self
+            let item = makeItem(title: kind.displayName, action: #selector(selectPlayer(_:)))
             item.representedObject = kind.rawValue
-            item.state = (kind == current) ? .on : .off
+            item.state = (kind == s.playerKind) ? .on : .off
             menu.addItem(item)
         }
+        menu.addItem(.separator())
+
+        // ── 発動条件 ──
+        menu.addItem(disabledHeader("発動条件"))
+
+        // 発動キー数 (サブメニュー)
+        let keyCountItem = NSMenuItem(title: "同時押しキー数: \(s.thresholdKeys) キー", action: nil, keyEquivalent: "")
+        keyCountItem.submenu = makeKeyCountSubmenu(current: s.thresholdKeys)
+        menu.addItem(keyCountItem)
+
+        // 発動までの時間 (サブメニュー)
+        let holdItem = NSMenuItem(title: String(format: "ホールド時間: %.1f 秒", s.holdSeconds), action: nil, keyEquivalent: "")
+        holdItem.submenu = makeHoldSecondsSubmenu(current: s.holdSeconds)
+        menu.addItem(holdItem)
+
+        // ブロック ON/OFF
+        let blockItem = makeItem(title: "猫検出中にキー入力をブロック", action: #selector(toggleBlocking))
+        blockItem.state = s.blockingEnabled ? .on : .off
+        menu.addItem(blockItem)
 
         menu.addItem(.separator())
 
-        let access = NSMenuItem(title: "アクセシビリティ設定を開く…", action: #selector(openAccessibility), keyEquivalent: "")
-        access.target = self
-        menu.addItem(access)
-
+        menu.addItem(makeItem(title: "アクセシビリティ設定を開く…", action: #selector(openAccessibility)))
         menu.addItem(.separator())
-
-        let quit = NSMenuItem(title: "Nekofunjatter を終了", action: #selector(quitTapped), keyEquivalent: "q")
-        quit.target = self
-        menu.addItem(quit)
+        menu.addItem(makeItem(title: "Nekofunjatter を終了", action: #selector(quitTapped), keyEquivalent: "q"))
 
         statusItem.menu = menu
     }
+
+    // MARK: - Submenus
+
+    private func makeKeyCountSubmenu(current: Int) -> NSMenu {
+        let submenu = NSMenu()
+        for n in Settings.thresholdKeyChoices {
+            let item = makeItem(title: "\(n) キー", action: #selector(selectThresholdKeys(_:)))
+            item.tag = n
+            item.state = (n == current) ? .on : .off
+            submenu.addItem(item)
+        }
+        return submenu
+    }
+
+    private func makeHoldSecondsSubmenu(current: TimeInterval) -> NSMenu {
+        let submenu = NSMenu()
+        for sec in Settings.holdSecondChoices {
+            let item = makeItem(title: String(format: "%.1f 秒", sec), action: #selector(selectHoldSeconds(_:)))
+            item.representedObject = sec
+            item.state = (abs(sec - current) < 0.01) ? .on : .off
+            submenu.addItem(item)
+        }
+        return submenu
+    }
+
+    // MARK: - Helpers
+
+    private func makeItem(title: String, action: Selector, keyEquivalent: String = "") -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: action, keyEquivalent: keyEquivalent)
+        item.target = self
+        return item
+    }
+
+    private func disabledHeader(_ title: String) -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        item.isEnabled = false
+        return item
+    }
+
+    // MARK: - Actions
 
     @objc private func previewTapped() {
         if isPreviewing {
@@ -90,7 +137,6 @@ final class MenuBarController: NSObject {
     }
 
     @objc private func forceStopTapped() {
-        // 強制停止時はプレビュー状態もリセット
         isPreviewing = false
         onForceStop()
         rebuildMenu()
@@ -99,12 +145,29 @@ final class MenuBarController: NSObject {
     @objc private func selectPlayer(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String,
               let kind = PlayerKind(rawValue: raw) else { return }
-        // 音源切替時に再生中なら止める
         if isPreviewing {
             onStopPreview()
             isPreviewing = false
         }
         onSelectPlayer(kind)
+        rebuildMenu()
+    }
+
+    @objc private func selectThresholdKeys(_ sender: NSMenuItem) {
+        Settings.shared.thresholdKeys = sender.tag
+        onDetectionSettingsChanged()
+        rebuildMenu()
+    }
+
+    @objc private func selectHoldSeconds(_ sender: NSMenuItem) {
+        guard let sec = sender.representedObject as? TimeInterval else { return }
+        Settings.shared.holdSeconds = sec
+        onDetectionSettingsChanged()
+        rebuildMenu()
+    }
+
+    @objc private func toggleBlocking() {
+        Settings.shared.blockingEnabled.toggle()
         rebuildMenu()
     }
 

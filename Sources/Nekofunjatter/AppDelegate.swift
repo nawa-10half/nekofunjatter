@@ -15,21 +15,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         currentPlayer = makePlayer(for: settings.playerKind)
 
-        let detector = CatDetector(
-            thresholdKeys: 2,
-            holdDuration: settings.holdSeconds,
-            onTrigger: { [weak self] in
-                self?.startCatMode()
-            },
-            onRelease: { [weak self] in
-                self?.endCatMode()
-            }
-        )
-        self.detector = detector
+        rebuildDetector()
 
         let monitor = KeyMonitor(
-            onKeyDown: { keyCode in detector.keyDown(keyCode) },
-            onKeyUp: { keyCode in detector.keyUp(keyCode) }
+            // detector を再生成しても繋がるよう self.detector? 経由で参照
+            onKeyDown: { [weak self] keyCode in self?.detector?.keyDown(keyCode) },
+            onKeyUp:   { [weak self] keyCode in self?.detector?.keyUp(keyCode) }
         )
         self.keyMonitor = monitor
 
@@ -49,6 +40,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             onForceStop: { [weak self] in
                 self?.endCatMode()
             },
+            onDetectionSettingsChanged: { [weak self] in
+                self?.rebuildDetector()
+            },
             onOpenAccessibilitySettings: {
                 KeyMonitor.openAccessibilitySettings()
             },
@@ -60,10 +54,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         monitor.start()
     }
 
+    private func rebuildDetector() {
+        let s = Settings.shared
+        detector = CatDetector(
+            thresholdKeys: s.thresholdKeys,
+            holdDuration: s.holdSeconds,
+            onTrigger: { [weak self] in self?.startCatMode() },
+            onRelease: { [weak self] in self?.endCatMode() }
+        )
+    }
+
     private func startCatMode() {
         currentPlayer?.play()
-        keyMonitor?.isBlocking = true
-        scheduleBlockingTimeout()
+        if Settings.shared.blockingEnabled {
+            keyMonitor?.isBlocking = true
+            scheduleBlockingTimeout()
+        }
     }
 
     private func endCatMode() {
