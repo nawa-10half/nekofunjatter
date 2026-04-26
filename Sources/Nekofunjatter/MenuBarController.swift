@@ -3,21 +3,27 @@ import AppKit
 final class MenuBarController: NSObject {
     private let statusItem: NSStatusItem
     private let onSelectPlayer: (PlayerKind) -> Void
-    private let onPreview: () -> Void
+    private let onStartPreview: () -> Void
+    private let onStopPreview: () -> Void
     private let onForceStop: () -> Void
     private let onOpenAccessibilitySettings: () -> Void
     private let onQuit: () -> Void
 
+    /// プレビュー再生中かどうか (メニュー表示の切替用)
+    private var isPreviewing: Bool = false
+
     init(
         onSelectPlayer: @escaping (PlayerKind) -> Void,
-        onPreview: @escaping () -> Void,
+        onStartPreview: @escaping () -> Void,
+        onStopPreview: @escaping () -> Void,
         onForceStop: @escaping () -> Void,
         onOpenAccessibilitySettings: @escaping () -> Void,
         onQuit: @escaping () -> Void
     ) {
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         self.onSelectPlayer = onSelectPlayer
-        self.onPreview = onPreview
+        self.onStartPreview = onStartPreview
+        self.onStopPreview = onStopPreview
         self.onForceStop = onForceStop
         self.onOpenAccessibilitySettings = onOpenAccessibilitySettings
         self.onQuit = onQuit
@@ -34,7 +40,8 @@ final class MenuBarController: NSObject {
     private func rebuildMenu() {
         let menu = NSMenu()
 
-        let preview = NSMenuItem(title: "プレビュー再生", action: #selector(previewTapped), keyEquivalent: "")
+        let previewTitle = isPreviewing ? "プレビュー停止" : "プレビュー再生"
+        let preview = NSMenuItem(title: previewTitle, action: #selector(previewTapped), keyEquivalent: "")
         preview.target = self
         menu.addItem(preview)
 
@@ -73,16 +80,30 @@ final class MenuBarController: NSObject {
     }
 
     @objc private func previewTapped() {
-        onPreview()
+        if isPreviewing {
+            onStopPreview()
+        } else {
+            onStartPreview()
+        }
+        isPreviewing.toggle()
+        rebuildMenu()
     }
 
     @objc private func forceStopTapped() {
+        // 強制停止時はプレビュー状態もリセット
+        isPreviewing = false
         onForceStop()
+        rebuildMenu()
     }
 
     @objc private func selectPlayer(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String,
               let kind = PlayerKind(rawValue: raw) else { return }
+        // 音源切替時に再生中なら止める
+        if isPreviewing {
+            onStopPreview()
+            isPreviewing = false
+        }
         onSelectPlayer(kind)
         rebuildMenu()
     }

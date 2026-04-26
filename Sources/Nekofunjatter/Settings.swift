@@ -27,7 +27,7 @@ final class Settings {
         get {
             guard let raw = defaults.string(forKey: Keys.playerKind),
                   let kind = PlayerKind(rawValue: raw) else {
-                return .wav
+                return .eightBit
             }
             return kind
         }

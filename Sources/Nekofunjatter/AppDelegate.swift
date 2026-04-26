@@ -40,8 +40,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self.currentPlayer?.stop()
                 self.currentPlayer = self.makePlayer(for: kind)
             },
-            onPreview: { [weak self] in
+            onStartPreview: { [weak self] in
                 self?.currentPlayer?.play()
+            },
+            onStopPreview: { [weak self] in
+                self?.currentPlayer?.stop()
             },
             onForceStop: { [weak self] in
                 self?.endCatMode()
