@@ -118,9 +118,9 @@ nekofunjatter/
 
 ## ライセンス
 
-- **コード**: MIT License を予定 (LICENSE ファイル準備中)
+- **コード**: [MIT License](LICENSE)
 - **楽曲「猫ふんじゃった」(Flohwalzer)**: 作曲者不詳の伝統曲、パブリックドメイン
-- **音源ファイル**: [License.md](License.md) を参照
+- **音源ファイル**: [License.md](License.md) を参照 (CC0 / 作者帰属の組み合わせ)
 
 ## クレジット
 
