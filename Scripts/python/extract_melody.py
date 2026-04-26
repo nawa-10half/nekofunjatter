@@ -28,8 +28,8 @@ def extract_melody(
     wav_path: Path,
     fmin: float = librosa.note_to_hz("C3"),
     fmax: float = librosa.note_to_hz("C7"),
-    frame_length: int = 2048,
-    hop_length: int = 512,
+    frame_length: int = 1024,   # 旧 2048。窓を短くして速い音の取りこぼしを減らす
+    hop_length: int = 256,       # 旧 512。サンプリング頻度を上げる
 ):
     y, sr = librosa.load(str(wav_path), sr=None, mono=True)
     print(f"loaded: {wav_path.name}, sr={sr}, duration={len(y)/sr:.2f}s")
