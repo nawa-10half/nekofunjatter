@@ -32,6 +32,17 @@ mkdir -p "${APP_BUNDLE}/Contents/Resources"
 cp "${EXECUTABLE}" "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
 cp "Resources/Info.plist" "${APP_BUNDLE}/Contents/Info.plist"
 
+# SoundJewel 音源 (再配布不可) が無い場合は警告のみ表示して続行
+if [[ ! -f "Resources/Audio/Neko_Funjatta.wav" ]]; then
+    echo "==> ⚠️  Resources/Audio/Neko_Funjatta.wav が見つかりません。"
+    echo "    https://soundjewel.symphie.jp/gekiban/neko_funjatta からダウンロードして配置してください。"
+    echo "    (アプリは起動しますが「ピアノ」音源は再生できません)"
+fi
+if [[ ! -f "Resources/Audio/Neko_Funjatta_8bit.wav" ]]; then
+    echo "==> ⚠️  Resources/Audio/Neko_Funjatta_8bit.wav が見つかりません。"
+    echo "    Scripts/python/extract_melody.py で生成してください。"
+fi
+
 # .icns は Contents/Resources/AppIcon.icns に直接置く必要がある
 # (CFBundleIconFile = "AppIcon" でこのパスから読まれる)
 if [[ -f "Resources/Icons/AppIcon.icns" ]]; then

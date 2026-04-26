@@ -12,3 +12,8 @@ Package.resolved
 Scripts/python/.venv/
 __pycache__/
 *.pyc
+
+# 配布不可な音源 (SoundJewel 規約により再配布禁止)
+# ローカルでは Resources/Audio/ に置くがリポジトリには含めない
+Resources/Audio/Neko_Funjatta.wav
+Resources/Audio/Neko_Funjatta_8bit.wav
