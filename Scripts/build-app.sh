@@ -46,6 +46,13 @@ if [[ -d "Resources/Icons" ]]; then
     cp -R "Resources/Icons" "${APP_BUNDLE}/Contents/Resources/Icons"
 fi
 
+# ローカライズリソース (*.lproj)
+for lproj in Resources/*.lproj; do
+    if [[ -d "${lproj}" ]]; then
+        cp -R "${lproj}" "${APP_BUNDLE}/Contents/Resources/"
+    fi
+done
+
 # PkgInfo (旧来の慣習)
 printf 'APPL????' > "${APP_BUNDLE}/Contents/PkgInfo"
 

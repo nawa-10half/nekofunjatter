@@ -73,13 +73,13 @@ final class MenuBarController: NSObject {
         let s = Settings.shared
 
         // ── 再生コントロール ──
-        let previewTitle = isPreviewing ? "プレビュー停止" : "プレビュー再生"
+        let previewTitle = String(localized: isPreviewing ? "menu.preview.stop" : "menu.preview.start")
         menu.addItem(makeItem(title: previewTitle, action: #selector(previewTapped)))
-        menu.addItem(makeItem(title: "今すぐ停止 (キーブロック解除)", action: #selector(forceStopTapped)))
+        menu.addItem(makeItem(title: String(localized: "menu.force_stop"), action: #selector(forceStopTapped)))
         menu.addItem(.separator())
 
         // ── 音源 ──
-        menu.addItem(disabledHeader("音源"))
+        menu.addItem(disabledHeader(String(localized: "menu.section.sound")))
         for kind in [PlayerKind.wav, .eightBit] {
             let item = makeItem(title: kind.displayName, action: #selector(selectPlayer(_:)))
             item.representedObject = kind.rawValue
@@ -93,39 +93,41 @@ final class MenuBarController: NSObject {
             item.toolTip = url.path
             menu.addItem(item)
         }
-        menu.addItem(makeItem(title: "カスタム音源を選択…", action: #selector(pickCustomAudioTapped)))
+        menu.addItem(makeItem(title: String(localized: "menu.custom_sound.pick"), action: #selector(pickCustomAudioTapped)))
         if s.customAudioURL != nil {
-            menu.addItem(makeItem(title: "カスタム音源の選択を解除", action: #selector(clearCustomAudioTapped)))
+            menu.addItem(makeItem(title: String(localized: "menu.custom_sound.clear"), action: #selector(clearCustomAudioTapped)))
         }
         menu.addItem(.separator())
 
         // ── 発動条件 ──
-        menu.addItem(disabledHeader("発動条件"))
+        menu.addItem(disabledHeader(String(localized: "menu.section.trigger")))
 
         // 発動キー数 (サブメニュー)
-        let keyCountItem = NSMenuItem(title: "同時押しキー数: \(s.thresholdKeys) キー", action: nil, keyEquivalent: "")
+        let keyCountTitle = String(format: NSLocalizedString("menu.threshold_keys.format", comment: ""), s.thresholdKeys)
+        let keyCountItem = NSMenuItem(title: keyCountTitle, action: nil, keyEquivalent: "")
         keyCountItem.submenu = makeKeyCountSubmenu(current: s.thresholdKeys)
         menu.addItem(keyCountItem)
 
         // 発動までの時間 (サブメニュー)
-        let holdItem = NSMenuItem(title: String(format: "ホールド時間: %.1f 秒", s.holdSeconds), action: nil, keyEquivalent: "")
+        let holdTitle = String(format: NSLocalizedString("menu.hold_seconds.format", comment: ""), s.holdSeconds)
+        let holdItem = NSMenuItem(title: holdTitle, action: nil, keyEquivalent: "")
         holdItem.submenu = makeHoldSecondsSubmenu(current: s.holdSeconds)
         menu.addItem(holdItem)
 
         // ブロック ON/OFF
-        let blockItem = makeItem(title: "猫検出中にキー入力をブロック", action: #selector(toggleBlocking))
+        let blockItem = makeItem(title: String(localized: "menu.block_keys"), action: #selector(toggleBlocking))
         blockItem.state = s.blockingEnabled ? .on : .off
         menu.addItem(blockItem)
 
         menu.addItem(.separator())
 
-        let autoLaunch = makeItem(title: "ログイン時に起動", action: #selector(toggleAutoLaunch))
+        let autoLaunch = makeItem(title: String(localized: "menu.auto_launch"), action: #selector(toggleAutoLaunch))
         autoLaunch.state = isAutoLaunchEnabled() ? .on : .off
         menu.addItem(autoLaunch)
 
-        menu.addItem(makeItem(title: "アクセシビリティ設定を開く…", action: #selector(openAccessibility)))
+        menu.addItem(makeItem(title: String(localized: "menu.open_accessibility"), action: #selector(openAccessibility)))
         menu.addItem(.separator())
-        menu.addItem(makeItem(title: "Nekofunjatter を終了", action: #selector(quitTapped), keyEquivalent: "q"))
+        menu.addItem(makeItem(title: String(localized: "menu.quit"), action: #selector(quitTapped), keyEquivalent: "q"))
 
         statusItem.menu = menu
     }
@@ -135,7 +137,8 @@ final class MenuBarController: NSObject {
     private func makeKeyCountSubmenu(current: Int) -> NSMenu {
         let submenu = NSMenu()
         for n in Settings.thresholdKeyChoices {
-            let item = makeItem(title: "\(n) キー", action: #selector(selectThresholdKeys(_:)))
+            let title = String(format: NSLocalizedString("submenu.keys.format", comment: ""), n)
+            let item = makeItem(title: title, action: #selector(selectThresholdKeys(_:)))
             item.tag = n
             item.state = (n == current) ? .on : .off
             submenu.addItem(item)
@@ -146,7 +149,8 @@ final class MenuBarController: NSObject {
     private func makeHoldSecondsSubmenu(current: TimeInterval) -> NSMenu {
         let submenu = NSMenu()
         for sec in Settings.holdSecondChoices {
-            let item = makeItem(title: String(format: "%.1f 秒", sec), action: #selector(selectHoldSeconds(_:)))
+            let title = String(format: NSLocalizedString("submenu.seconds.format", comment: ""), sec)
+            let item = makeItem(title: title, action: #selector(selectHoldSeconds(_:)))
             item.representedObject = sec
             item.state = (abs(sec - current) < 0.01) ? .on : .off
             submenu.addItem(item)

@@ -8,6 +8,9 @@ Package.resolved
 *.zip
 *.dmg
 
+# Serena MCP local config
+.serena/
+
 # Python venv
 Scripts/python/.venv/
 __pycache__/

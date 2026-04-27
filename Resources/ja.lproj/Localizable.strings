@@ -1,0 +1,26 @@
+"menu.preview.start" = "プレビュー再生";
+"menu.preview.stop" = "プレビュー停止";
+"menu.force_stop" = "今すぐ停止 (キーブロック解除)";
+
+"menu.section.sound" = "音源";
+"menu.custom_sound.pick" = "カスタム音源を選択…";
+"menu.custom_sound.clear" = "カスタム音源の選択を解除";
+
+"menu.section.trigger" = "発動条件";
+"menu.threshold_keys.format" = "同時押しキー数: %d キー";
+"menu.hold_seconds.format" = "ホールド時間: %.1f 秒";
+"menu.block_keys" = "猫検出中にキー入力をブロック";
+
+"menu.auto_launch" = "ログイン時に起動";
+"menu.open_accessibility" = "アクセシビリティ設定を開く…";
+"menu.quit" = "Nekofunjatter を終了";
+
+"submenu.keys.format" = "%d キー";
+"submenu.seconds.format" = "%.1f 秒";
+
+"picker.message" = "猫モード時に再生する音声ファイルを選択";
+"picker.prompt" = "選択";
+
+"player.piano" = "ピアノ";
+"player.eight_bit" = "8bit 風";
+"player.custom" = "カスタム音源";

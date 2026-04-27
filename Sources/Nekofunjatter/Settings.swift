@@ -7,9 +7,9 @@ enum PlayerKind: String, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .wav:      return "ピアノ"
-        case .eightBit: return "8bit 風"
-        case .custom:   return "カスタム音源"
+        case .wav:      return String(localized: "player.piano")
+        case .eightBit: return String(localized: "player.eight_bit")
+        case .custom:   return String(localized: "player.custom")
         }
     }
 }

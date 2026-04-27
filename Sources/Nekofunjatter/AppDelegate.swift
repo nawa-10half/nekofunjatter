@@ -144,8 +144,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
-        panel.message = "猫モード時に再生する音声ファイルを選択"
-        panel.prompt = "選択"
+        panel.message = String(localized: "picker.message")
+        panel.prompt = String(localized: "picker.prompt")
         guard panel.runModal() == .OK, let url = panel.url else { return }
         Settings.shared.customAudioURL = url
         Settings.shared.playerKind = .custom

@@ -1,0 +1,26 @@
+"menu.preview.start" = "Preview";
+"menu.preview.stop" = "Stop Preview";
+"menu.force_stop" = "Stop Now (Unblock Keys)";
+
+"menu.section.sound" = "Sound";
+"menu.custom_sound.pick" = "Choose Custom Sound…";
+"menu.custom_sound.clear" = "Clear Custom Sound";
+
+"menu.section.trigger" = "Trigger";
+"menu.threshold_keys.format" = "Keys to Trigger: %d keys";
+"menu.hold_seconds.format" = "Hold Time: %.1f s";
+"menu.block_keys" = "Block Keys While Cat Detected";
+
+"menu.auto_launch" = "Launch at Login";
+"menu.open_accessibility" = "Open Accessibility Settings…";
+"menu.quit" = "Quit Nekofunjatter";
+
+"submenu.keys.format" = "%d keys";
+"submenu.seconds.format" = "%.1f s";
+
+"picker.message" = "Choose an audio file to play in cat mode";
+"picker.prompt" = "Choose";
+
+"player.piano" = "Piano";
+"player.eight_bit" = "8-bit Style";
+"player.custom" = "Custom Sound";
