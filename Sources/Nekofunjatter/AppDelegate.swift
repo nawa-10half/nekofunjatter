@@ -11,6 +11,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var detector: CatDetector?
     private var currentPlayer: Player?
     private var blockingTimeoutTimer: Timer?
+    /// 発火してから解除されるまでの間 true (プレビュー再生とは区別する)
+    private var isCatModeActive = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let settings = Settings.shared
@@ -55,7 +57,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.endCatMode()
             },
             onDetectionSettingsChanged: { [weak self] in
-                self?.rebuildDetector()
+                guard let self else { return }
+                // 作り直した detector は発火済みの状態を引き継がず onRelease を呼ばないので、
+                // 先に解除しておく (でないとブロックが 60 秒タイムアウトまで続く)
+                if self.isCatModeActive {
+                    self.endCatMode()
+                }
+                self.rebuildDetector()
             },
             onToggleAutoLaunch: {
                 AppDelegate.toggleAutoLaunch()
@@ -85,6 +93,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func startCatMode() {
+        isCatModeActive = true
         currentPlayer?.play()
         if Settings.shared.blockingEnabled {
             keyMonitor?.isBlocking = true
@@ -93,6 +102,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func endCatMode() {
+        isCatModeActive = false
         currentPlayer?.stop()
         keyMonitor?.isBlocking = false
         blockingTimeoutTimer?.invalidate()
